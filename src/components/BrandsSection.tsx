@@ -6,19 +6,19 @@ const brands = [
 
 const BrandsSection = () => {
   return (
-    <section className="bg-card py-12 mt-4">
+    <section className="py-14 border-t border-b border-border">
       <div className="container mx-auto px-4 text-center">
-        <h2 className="text-3xl font-bold font-heading text-foreground mb-8">
-          Trabalhamos com Marcas
-        </h2>
-        <div className="flex items-center justify-center gap-12 flex-wrap">
+        <p className="text-xs font-semibold tracking-[0.3em] text-muted-foreground uppercase mb-8">
+          Marcas que trabalhamos
+        </p>
+        <div className="flex items-center justify-center gap-16 flex-wrap">
           {brands.map((brand) => (
             <img
               key={brand.name}
               src={brand.logo}
               alt={brand.name}
               loading="lazy"
-              className="h-12 opacity-60 hover:opacity-100 transition-opacity duration-300 grayscale hover:grayscale-0"
+              className="h-8 opacity-40 hover:opacity-80 transition-opacity duration-300"
             />
           ))}
         </div>
