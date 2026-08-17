@@ -10,8 +10,6 @@ styles.forEach(href => {
   document.head.appendChild(link);
 });
 
-// Some browsers/privacy modes can throw when localStorage is accessed.
-// Provide a small in-memory fallback so the storefront never becomes a blank page.
 function ensureStorage(){
   try {
     const storage = window.localStorage;
@@ -45,7 +43,7 @@ class StartupBoundary extends Component<{children:ReactNode},{error:boolean}> {
         <div style={{maxWidth:520,textAlign:'center',background:'#fff',padding:32,borderRadius:24,boxShadow:'0 20px 60px rgba(16,36,63,.12)'}}>
           <div style={{fontSize:48,marginBottom:12}}>🐾</div>
           <h1 style={{margin:'0 0 10px',fontSize:28}}>PetMaster</h1>
-          <p style={{margin:'0 0 20px',lineHeight:1.6,color:'#5f6875'}}>A loja está carregando com uma versão segura. Atualize a página para tentar novamente.</p>
+          <p style={{margin:'0 0 20px',lineHeight:1.6,color:'#5f6875'}}>Não foi possível carregar a loja. Atualize a página para tentar novamente.</p>
           <button onClick={()=>window.location.reload()} style={{border:0,borderRadius:12,padding:'12px 20px',background:'#10243f',color:'#fff',fontWeight:700,cursor:'pointer'}}>Atualizar página</button>
         </div>
       </div>;
@@ -55,35 +53,40 @@ class StartupBoundary extends Component<{children:ReactNode},{error:boolean}> {
 }
 
 async function start(){
+  const root = createRoot(document.getElementById('root')!);
   try {
-    const [{ default: App }, { default: AdminFixed }] = await Promise.all([
-      import('./App.tsx'),
-      import('./AdminFixed.tsx')
-    ]);
     const adminMode = window.localStorage.getItem('petviva_admin') === '1';
-    if(!adminMode){
-      document.addEventListener('click',(event)=>{
-        const target = event.target as HTMLElement|null;
-        const button = target?.closest('button');
-        if(!button) return;
-        const text = button.textContent?.trim().toLowerCase() || '';
-        if(text.includes('acesso administrativo')){
-          event.preventDefault();
-          event.stopImmediatePropagation();
-          window.localStorage.setItem('petviva_admin','1');
-          window.location.reload();
-          return;
-        }
-        if(text.includes('falar com a loja') || text.includes('whatsapp da loja')){
-          event.preventDefault();
-          window.open('https://wa.me/553433341608?text=Ol%C3%A1%20PetMaster!%20Vi%20o%20site%20e%20gostaria%20de%20mais%20informa%C3%A7%C3%B5es.','_blank','noopener,noreferrer');
-        }
-      }, true);
+
+    if(adminMode){
+      const { default: AdminFixed } = await import('./AdminFixed.tsx');
+      root.render(<StartupBoundary><AdminFixed/></StartupBoundary>);
+      return;
     }
-    createRoot(document.getElementById('root')!).render(<StartupBoundary>{adminMode ? <AdminFixed/> : <App/>}</StartupBoundary>);
+
+    const { default: App } = await import('./App.tsx');
+
+    document.addEventListener('click',(event)=>{
+      const target = event.target as HTMLElement|null;
+      const button = target?.closest('button');
+      if(!button) return;
+      const text = button.textContent?.trim().toLowerCase() || '';
+      if(text.includes('acesso administrativo')){
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        window.localStorage.setItem('petviva_admin','1');
+        window.location.reload();
+        return;
+      }
+      if(text.includes('falar com a loja') || text.includes('whatsapp da loja')){
+        event.preventDefault();
+        window.open('https://wa.me/553433341608?text=Ol%C3%A1%20PetMaster!%20Vi%20o%20site%20e%20gostaria%20de%20mais%20informa%C3%A7%C3%B5es.','_blank','noopener,noreferrer');
+      }
+    }, true);
+
+    root.render(<StartupBoundary><App/></StartupBoundary>);
   } catch (error) {
     console.error('PetMaster startup error', error);
-    createRoot(document.getElementById('root')!).render(<StartupBoundary><div /></StartupBoundary>);
+    root.render(<StartupBoundary><div /></StartupBoundary>);
   }
 }
 
